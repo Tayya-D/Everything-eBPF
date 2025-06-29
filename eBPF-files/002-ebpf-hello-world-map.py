@@ -16,7 +16,8 @@ int hello_world(void *ctx) {
     u64 *ptr;
 
     uid = bpf_get_current_uid_gid() & 0xFFFFFFFF;
-    ptr - clones.lookup(uid);
+    ptr = clones.lookup(uid);
+    // Check if pointer is non-null - without this check, the program will crash or simply not work due to the verifier not allowing it
     if (ptr) {
         counter = *ptr;
     }
