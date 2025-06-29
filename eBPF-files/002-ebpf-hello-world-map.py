@@ -60,5 +60,6 @@ while True:
             print(f"UID: {k.value}, Count: {v.value}")
     else:
         print("No entries recorded yet.")
-            
-        
+# Note: The above loop will continuously print the contents of the hash map every 2 seconds.
+# You can stop the script with Ctrl-C, and it will print the final counts of clone syscalls per UID.
+# This allows you to see how many times the clone syscall has been invoked by each UID since the script started.
