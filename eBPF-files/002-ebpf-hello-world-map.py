@@ -48,4 +48,16 @@ except KeyboardInterrupt:
     pass
 # Print the trace output
 print("Output:")
-b.trace_print()
+# b.trace_print()
+
+# Print the contents of the hash map
+print("Clone syscall counts:")
+while True:
+    sleep(2)
+    if len(b["clones"].items()):
+        for k, v in b["clones"].items():
+            print(f"UID: {k.value}, Count: {v.value}")
+    else:
+        print("No entries recorded yet.")
+            
+        
