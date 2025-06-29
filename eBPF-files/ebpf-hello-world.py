@@ -8,7 +8,11 @@ from time import sleep
 # Define the eBPF program as a string
 program = """ 
 int hello_world(void *ctx) {
-    bpf_trace_printk("Hello, World!\\n");
+    u64 uid;
+
+    uid = bpf_get_current_uid_gid() & 0xFFFFFFFF;
+    // Print the UID of the current process
+    bpf_trace_printk("Hello, World! UID: %d\\n", uid);
     return 0;
 }
 """
