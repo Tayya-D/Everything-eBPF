@@ -20,7 +20,13 @@ Another way we you can view all the different events you can hook into is via 's
 There are lots of functions related to networking. Kprobes can be used and attached whenever an entry; kretprobe for exit from a kernal function occurs.
 An example would be 'tcp_v4_connect()' kernal function
 
-BPF_PROG_TYPE_SOCKET_FILTER program type allows us to attach to the raw socket interface and copy/filter what gets sent to userspace, for performant obversability. And example of this can be achieved via 'attch_raw_socket()'
+### Program Types ###
+
+BPF_PROG_TYPE_SOCKET_FILTER program type allows us to attach to the raw socket interface and copy/filter what gets sent to userspace, for performant obversability. And example of this can be achieved via 'attch_raw_socket()'. 
+As mentioned before, this is used for oberservability purposes only.
+
+BPF_PROG_TYPE_XDP 
+
 
 =====
 =====
