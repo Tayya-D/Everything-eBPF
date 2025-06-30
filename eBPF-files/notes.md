@@ -1,7 +1,9 @@
-### NOTES ###
+# NOTES #
 
 (notes on: A Beginner's Guide to eBPF Programming for Networking - Liz Rice, Isovalent)
 (What is eBPF? Brightboard Lesson)
+
+## eBPF Basics ##
 
 Put simply - eBPF lets you run custom code in the kernal
 These custom code or programs are triggered in response to events and are run when the kernal or application passes a certain 'hook point'. 
@@ -11,7 +13,15 @@ eBPF is not just limited to tracing syscalls - there are many more use cases as 
 
 Another way we you can view all the different events you can hook into is via 'sudo perf list'
 
+## Network Events ##
 
+### K Probes ###
+
+There are lots of functions related to networking. Kprobes can be used and attached whenever an entry; kretprobe for exit from a kernal function occurs.
+An example would be 'tcp_v4_connect()' kernal function
+
+=====
+=====
 The 'bpf_trace_printk' function is ok to use for simple programs like the hello world program but not for production level programs.
 This is because the 'bpf_trace_printk' function prints the output to a single pipe. This is the same for the '.trace_print()' function where it reads from a single pipe -> this won't really scale well when you start wanting to run multiple eBPF programs
 
