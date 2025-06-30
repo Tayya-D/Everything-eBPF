@@ -25,7 +25,7 @@ An example would be 'tcp_v4_connect()' kernal function
 BPF_PROG_TYPE_SOCKET_FILTER program type allows us to attach to the raw socket interface and copy/filter what gets sent to userspace, for performant obversability. And example of this can be achieved via 'attch_raw_socket()'. 
 As mentioned before, this is used for oberservability purposes only.
 
-BPF_PROG_TYPE_XDP 
+BPF_PROG_TYPE_XDP (XDP = Express Data Path) aka "What if we could run eBPF on the network interface card? ... therefore no resources used on the CPU itself" This only works of course if the NIC/driver supports XDP and can work on virtual network connections as well (only for inbound packets). These XDP programs can do the following to indound packets: pass, drop, manipulate, redirect packets. An example of achieving this is via the use of 'attach_xdp'
 
 
 =====
