@@ -47,6 +47,20 @@ int socket_filter(struct __sk_buff *skb) {
     return 0;  // Allow all other packets to pass through as normal - not sending any to userspace
 }
 
+// The following function checks if the packet is an ICMP ping request (type 8) and passes that information to userspace.
+
+int xdp(struct xdp_md *ctx) {
+    void *data = (void *)(long)ctx->data;
+    void *data_end = (void *)(long)ctx->data_end;
+    
+    if (is_icmp_ping_request(data, data_end)) {
+        struct iphdr *ip = data + sizeof(struct ethhdr);
+        struct icmphdr *icmp = data + sizeof(struct ethhdr) + sizeof(struct iphdr);
+        bpf_trace_printk("[xdp] ICMP ping request detected from %x to %x\\n", ip->saddr, ip->daddr, icmp->type);
+    }
+    
+    return XDP_PASS;  // Pass the packet to the next stage in the networking stack
+}
 
 """
 
@@ -56,7 +70,7 @@ b = BPF(src_file="ebpf_hello_networking_world_c_code")
 
 # b.attach_kprobe(event="tcp_v4_connect", fn_name="tcp_connect")
 
-# load the socket filter program
+# Load the socket filter program
 f = b.loadfunc("socket_filter", BPF.SOCKET_FILTER)
 # Attach the socket filter to the specified network interface
 # This will filter packets on the specified interface and send TCP packets to userspace.
@@ -67,19 +81,23 @@ fd = f.sock
 sock = socket.fromfd(fd, socket.PF_PACKET, socket.SOCK_RAW, socket.IPPROTO_IP)
 sock.setblocking(True)
 
+# Load the XDP program
+fx = b.load_func("xdp", BPF.XDP)
+# Attach the XDP program to the specified network interface
+BPF.attach_xdp(fx, interface, 0)
 
 print("Tracing Ready... Hit Ctrl-C to end.")
 
 try:
-    # b.trace_print()
+    b.trace_print()
     
-    while True:
-        # Read packets from the raw socket
-        packet = os.read(fd, 4096)  # Read a maximum of 4096 bytes
-        print("Userspace received packet {}:".format(packet))
-        
-        # Sleep for a short duration to avoid busy-waiting
-        sleep(0.1)
+    #while True:
+    #   # Read packets from the raw socket
+    #    packet = os.read(fd, 4096)  # Read a maximum of 4096 bytes
+    #    print("Userspace received packet {}:".format(packet))
+    #
+    #    # Sleep for a short duration to avoid busy-waiting
+    #    sleep(0.1)
     
 except KeyboardInterrupt:
     print("Exiting...")
