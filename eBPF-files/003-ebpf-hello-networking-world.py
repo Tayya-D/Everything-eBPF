@@ -4,8 +4,8 @@ import os
 from time import sleep
 from pyroute2 import IPRoute
 
-# Define the eBPF program as a string
-ebpf_hello_networking_world_code = """ 
+# Define the eBPF program (C code) as a string
+ebpf_hello_networking_world_c_code = """ 
 
 #include <linux/if_ether.h>
 #include <linux/ip.h>
@@ -17,11 +17,13 @@ int tcpconnect(void *ctx) {
 
 }
 
+
+
 """
 
 interface = "eth0"  # Change this to your network interface
 
-b = BPF(src_file="ebpf_hello_networking_world_code")
+b = BPF(src_file="ebpf_hello_networking_world_c_code")
 
 b.attach_kprobe(event="tcp_v4_connect", fn_name="tcp_connect")
 
