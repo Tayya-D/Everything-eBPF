@@ -54,11 +54,32 @@ interface = "eth0"  # Change this to your network interface
 
 b = BPF(src_file="ebpf_hello_networking_world_c_code")
 
-b.attach_kprobe(event="tcp_v4_connect", fn_name="tcp_connect")
+# b.attach_kprobe(event="tcp_v4_connect", fn_name="tcp_connect")
 
-print("Tracing TCP connections... Hit Ctrl-C to end.")
+# load the socket filter program
+f = b.loadfunc("socket_filter", BPF.SOCKET_FILTER)
+# Attach the socket filter to the specified network interface
+# This will filter packets on the specified interface and send TCP packets to userspace.
+BPF.attach_raw_socket(f, interface)
+# create a raw socket to receive packets
+# This will allow us to receive a copy of the packets that match the filter criteria.
+fd = f.sock
+sock = socket.fromfd(fd, socket.PF_PACKET, socket.SOCK_RAW, socket.IPPROTO_IP)
+sock.setblocking(True)
+
+
+print("Tracing Ready... Hit Ctrl-C to end.")
 
 try:
-    b.trace_print()
+    # b.trace_print()
+    
+    while True:
+        # Read packets from the raw socket
+        packet = os.read(fd, 4096)  # Read a maximum of 4096 bytes
+        print("Userspace received packet {}:".format(packet))
+        
+        # Sleep for a short duration to avoid busy-waiting
+        sleep(0.1)
+    
 except KeyboardInterrupt:
     print("Exiting...")
