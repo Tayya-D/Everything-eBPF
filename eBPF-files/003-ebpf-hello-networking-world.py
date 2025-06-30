@@ -108,7 +108,7 @@ BPF.attach_xdp(fx, interface, 0)
 # Create the queuing discipline (qdisk) for the interface and the filter
 # This will allow us to filter packets at the ingress stage and drop ICMP ping requests.
 ipr = IPRoute()
-fi = b.load_func("tc_pingpong", BPF.SCHED_CLS)
+fi = b.load_func("tc", BPF.SCHED_CLS)
 links = ipr.link_lookup(ifname=interface)
 idx = links[0]
 
