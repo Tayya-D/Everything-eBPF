@@ -27,6 +27,9 @@ As mentioned before, this is used for oberservability purposes only.
 
 BPF_PROG_TYPE_XDP (XDP = Express Data Path) aka "What if we could run eBPF on the network interface card? ... therefore no resources used on the CPU itself" This only works of course if the NIC/driver supports XDP and can work on virtual network connections as well (only for inbound packets). These XDP programs can do the following to indound packets: pass, drop, manipulate, redirect packets. An example of achieving this is via the use of 'attach_xdp'
 
+BPF_PROG_TYPE_SCHED_CLS is a program related to traffic control. This is a facility within the kernal where we can run actions on network packets. We can attach these filters to 'queuing disciplines' for both ingress and egress. You might use it for traffic prioritisation or filtering certain types of traffic. eBPF are a type of filter that you can attach to these disciplines.
+We can attach these eBPF program to queueing disciplines, to act as a filter on Ingress/Egress (separately) to either pass, drop, mainpulate or redirect packets. We can do this via 'tc(add-filter)'
+
 
 =====
 =====
