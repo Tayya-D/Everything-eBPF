@@ -29,6 +29,7 @@ BPF_PROG_TYPE_XDP (XDP = Express Data Path) aka "What if we could run eBPF on th
 
 BPF_PROG_TYPE_SCHED_CLS is a program related to traffic control. This is a facility within the kernal where we can run actions on network packets. We can attach these filters to 'queuing disciplines' for both ingress and egress. You might use it for traffic prioritisation or filtering certain types of traffic. eBPF are a type of filter that you can attach to these disciplines.
 We can attach these eBPF program to queueing disciplines, to act as a filter on Ingress/Egress (separately) to either pass, drop, mainpulate or redirect packets. We can do this via 'tc(add-filter)'
+Rather than dropping the filtered packets - you can instead code a response at the kernal level - rather than making the failed ping response going through the entire network stack and then reply with a failed ping message; instead the intiator of the ping will get a negative to their ping reply at the kernal level (this saves time and resources on the network level)
 
 
 =====
