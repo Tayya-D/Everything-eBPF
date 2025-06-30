@@ -62,6 +62,23 @@ int xdp(struct xdp_md *ctx) {
     return XDP_PASS;  // Pass the packet to the next stage in the networking stack
 }
 
+// The following function checks for ingress packets + whether they are ICMP ping requests, if true then drops the packet and does not pass it to the next stage in the networking stack.
+
+int tc(struct __sk_buff *skb) {
+    bpf_trace_printk("[tc] Ingress packet detected\\n");
+    
+    void *data = (void *)(long)skb->data;
+    void *data_end = (void *)(long)skb->data_end;
+    
+    if (is_icmp_ping_request(data, data_end)) {
+        struct iphdr *ip = data + sizeof(struct ethhdr);
+        struct icmphdr *icmp = data + sizeof(struct ethhdr) + sizeof(struct iphdr);
+        bpf_trace_printk("[tc] ICMP ping request detected from %x to %x\\n", ip->saddr, ip->daddr, icmp->type);
+        return TC_ACT_SHOT;  // Drop the packet
+    }
+    return TC_ACT_OK;  // Allow all other packets to pass through
+
+
 """
 
 interface = "eth0"  # Change this to your network interface
@@ -86,6 +103,23 @@ fx = b.load_func("xdp", BPF.XDP)
 # Attach the XDP program to the specified network interface
 BPF.attach_xdp(fx, interface, 0)
 
+
+# Load the TC program
+# Create the queuing discipline (qdisk) for the interface and the filter
+# This will allow us to filter packets at the ingress stage and drop ICMP ping requests.
+ipr = IPRoute()
+fi = b.load_func("tc_pingpong", BPF.SCHED_CLS)
+links = ipr.link_lookup(ifname=interface)
+idx = links[0]
+
+try:
+    ipr.tc("add", "ingress", idx, "ffff:")
+except:
+    print("qdisk ingress already exists, skipping...")
+    
+    ipr.tc("add-filter", "bpf", idx, ":1", fd=fi.fd, name=fi.name, parent="ffff:", action="drop", classid=1)
+
+
 print("Tracing Ready... Hit Ctrl-C to end.")
 
 try:
@@ -100,4 +134,7 @@ try:
     #    sleep(0.1)
     
 except KeyboardInterrupt:
-    print("Exiting...")
+    print("\n unloading...")
+    ipr.tc("del", "ingress", idx, "ffff:")
+
+exit()
