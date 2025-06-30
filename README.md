@@ -1,5 +1,3 @@
----  
-
 # **🚀 eBPF: A Comprehensive Overview**  
 
 ## **📌 Introduction**  
