@@ -31,9 +31,24 @@ BPF_PROG_TYPE_SCHED_CLS is a program related to traffic control. This is a facil
 We can attach these eBPF program to queueing disciplines, to act as a filter on Ingress/Egress (separately) to either pass, drop, mainpulate or redirect packets. We can do this via 'tc(add-filter)'
 Rather than dropping the filtered packets - you can instead code a response at the kernal level - rather than making the failed ping response going through the entire network stack and then reply with a failed ping message; instead the intiator of the ping will get a negative to their ping reply at the kernal level (this saves time and resources on the network level)
 
+### Perf Events ###
+
+A way to check your filters are working as they should (rather than allowing the filtered packets to pass through the network stack), is to use 'sudo perf trace'
+
+'sudo perf trace -e "net:*" ping -c1 <address>'
+
+This command traces out the network related events that happen as those ping messages are sent out through the networking stack.
+A helpful way of comparing pre and post filter program runtime, is to capture the output to two files -> one for before the filter program is run and one after the filter program is run.
+So the resulting command will look something like the following:
+
+'sudo perf trace -e "net:*" -o before-tc.txt ping -c1 <address> '
+'sudo perf trace -e "net:*" -o after-tc.txt ping -c1 <address> '
+
+Comparing the two files will result in the 'after-tc.txt' file have few entries as the tc program used in the example in '003-ebpf-hello-networking-world.py' drops the ICMP (ping) packets.
+
 
 =====
-=====
+
 The 'bpf_trace_printk' function is ok to use for simple programs like the hello world program but not for production level programs.
 This is because the 'bpf_trace_printk' function prints the output to a single pipe. This is the same for the '.trace_print()' function where it reads from a single pipe -> this won't really scale well when you start wanting to run multiple eBPF programs
 
