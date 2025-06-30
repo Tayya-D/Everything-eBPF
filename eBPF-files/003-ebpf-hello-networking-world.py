@@ -77,7 +77,38 @@ int tc(struct __sk_buff *skb) {
         return TC_ACT_SHOT;  // Drop the packet
     }
     return TC_ACT_OK;  // Allow all other packets to pass through
+}
 
+// The following function will allow us to check if the packet is an ICMP ping request (type 8) and reply with a message to userspace.
+
+int tc_reply(struct __sk_buff *skb) {
+    bpf_trace_printk("[tc] ICMP ping request detected\\n");
+    
+    void *data = (void *)(long)skb->data;
+    void *data_end = (void *)(long)skb->data_end;
+    
+    if (is_icmp_ping_request(data, data_end)) {
+        return TC_ACT_SHOT;  // Drop the packet
+    }
+    
+    struct iphdr *ip = data + sizeof(struct ethhdr);
+    struct icmphdr *icmp = data + sizeof(struct ethhdr) + sizeof(struct iphdr);
+    bpf_trace_printk("[tc] ICMP ping request detected from %x to %x\\n", ip->saddr, ip->daddr, icmp->type);
+    
+    // Send a reply to userspace
+    // Swap the source and destination MAC addresses so that the reply can be sent back to the original sender
+    swap_mac_addresses(skb);
+    swap_ip_addresses(skb);
+    
+    // Change the ICMP type to 0 (echo reply) and set the code to 0
+    update_icmp_type(skb, 8, 0);
+    
+    // Redirecting the cloned and modified skb on the same interface to be processed by the kernel
+    bpf_clone_redirect(skb, skb->ifindex, 0);
+    
+    return TC_ACT_OK;  // We modified the packet and redirected a clone of it, so we drop this original packet
+
+}
 
 """
 
@@ -108,7 +139,9 @@ BPF.attach_xdp(fx, interface, 0)
 # Create the queuing discipline (qdisk) for the interface and the filter
 # This will allow us to filter packets at the ingress stage and drop ICMP ping requests.
 ipr = IPRoute()
-fi = b.load_func("tc", BPF.SCHED_CLS)
+#fi = b.load_func("tc", BPF.SCHED_CLS)
+# Load the TC reply program
+fi = b.load_func("tc_reply", BPF.SCHED_CLS)
 links = ipr.link_lookup(ifname=interface)
 idx = links[0]
 
