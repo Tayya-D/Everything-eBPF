@@ -46,7 +46,25 @@ So the resulting command will look something like the following:
 
 Comparing the two files will result in the 'after-tc.txt' file have few entries as the tc program used in the example in '003-ebpf-hello-networking-world.py' drops the ICMP (ping) packets.
 
+### eBPF is Kubernetes ###
 
+eBPF is very useful for increasing efficiency on a network level and building high performance systems. eBPF can also be used on a virtual level - for example with Kubernetese pods on any given host. Just like physical hosts - virtual hosts/pods in this case will also have their own TC/IP network stack and veth entry points. With eBPF we can bypass a lot of the physical host network stack and route traffic we want directly to the veth without the traffic needing to pass through the entire hosts network stack and instead route the traffic to the appropriate pod's virtual eth interface. The result is significantly faster networking and makes a big difference in efficience and load on the hosts resources.
+
+### eBPF-Enabled Networking Capabilities ###
+
+Inspect packets -> Obersability
+- Identity-aware data flows, message parsing, security forensics...
+
+Drop or modify packets -> Security
+- Network policies, encryption 
+
+Redirect packets -> Network Functions
+- Load balancing, routing, service mesh...
+
+eBPF enables next-gen service mesh, high performance WITHOUT ANY APP OR CONFIG CHANGES!
+
+NOTE TO SELF:
+check out lizrice/ebpf-beginners, ebpf.io, cilium.io
 =====
 
 The 'bpf_trace_printk' function is ok to use for simple programs like the hello world program but not for production level programs.
